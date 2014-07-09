@@ -1,31 +1,76 @@
 package com.yutu.konoassignment;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.util.Log;
 
 public class ListActivityModel {
 	JSONObject jObj;
 	JSONParser jPar;
 	JSONArray  jArr;
+	ArrayList<Magazine> magList;
+	
+	
 	// Constructor
 	public ListActivityModel() {
+		magList = new ArrayList<Magazine>();
 	}
 	
 	public boolean grabJSONObjectFromWeb(String url){
 		jPar = new JSONParser(url);
 		jObj = jPar.getJSONObject();
 		jArr = jPar.getJSONArray("magazines");
+		parse();
 		return true;
+	}
+	
+	public void parse(){
+		JSONObject obj;
+		String coverURL;
+		//https://d3xwm9x3ez74b.cloudfront.net/magcovers/53933893997a8-hq.jpg
+		for(int i = 0 ; i < jArr.length() ; i++){
+			Magazine mag = new Magazine();
+			try {
+				obj = jArr.getJSONObject(i);
+				mag.setTitle(obj.getString("title"));
+				mag.setBid(obj.getString("bid"));
+				mag.setPublishDate(obj.getString("published_date"));
+				mag.setIssue(obj.getString("issue"));
+				mag.setFileType(obj.getString("file_type"));
+				mag.setDescription(obj.getString("description"));
+				mag.setIsNew(obj.getBoolean("is_new"));
+				mag.setAvaiForSale(obj.getBoolean("available_for_sale"));
+				mag.setHasPDF(obj.getBoolean("has_pdf"));
+				mag.setHasFitReading(obj.getBoolean("has_fit_reading"));
+				
+				coverURL = "https://d3xwm9x3ez74b.cloudfront.net/magcovers/" + mag.getBid() + ".jpg";
+				URL url = new URL(coverURL);
+				Bitmap image = BitmapFactory.decodeStream(url.openConnection().getInputStream());
+				mag.setCover(image);
+				
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			//Log.d("DEBUG", mag.toString());
+			magList.add(mag);
+			
+		}
 	}
 	
 	public class Magazine{
@@ -80,8 +125,6 @@ public class ListActivityModel {
 		}
 	}
 	public class JSONParser {
-		Magazine mag;
-		
 		JSONObject jObj;
 		JSONArray  jArr;
 		
