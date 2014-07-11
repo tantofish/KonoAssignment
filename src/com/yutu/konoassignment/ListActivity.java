@@ -1,44 +1,39 @@
 package com.yutu.konoassignment;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.URLConnection;
-import java.nio.charset.Charset;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.Intent;
+import android.graphics.Point;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.ImageView;
+
 
 public class ListActivity extends Activity{
 	
 	private ListActivityView mView;
 	private ProgressDialog dialog;
 	private ListActivityModel mModel;
+	private LoadMagazines lm;
+	
 	static String url = "http://yteam.thekono.com/KPI2/titles/gq/magazines";
 	Context mContext;
-	ImageView iv;
+	
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
 		mContext = this;
 		mView  = new ListActivityView(this);
 		mModel = new ListActivityModel();
-		
+		Point size = new Point();
+		getWindowManager().getDefaultDisplay().getSize(size);
+		mModel.setScreenSize(size.y, size.x);
+		Log.d("DEBUG", "Screen Size = ("+size.x+","+size.y+")");
 		loading();
 		
-		iv = new ImageView(this);
 		
-		mView.addView(iv, 400, 400, 0, 0);
 		mView.setToContentView(this);
 	}
 	
@@ -46,7 +41,7 @@ public class ListActivity extends Activity{
 	void loading()
 	{
 	    dialog = ProgressDialog.show(ListActivity.this, "", "Loading. Please wait...", true);
-	    LoadMagazines lm = new LoadMagazines();
+	    lm = new LoadMagazines();
 	    lm.execute();
 	}
 
@@ -60,14 +55,9 @@ public class ListActivity extends Activity{
 		}
 
 		protected void onPostExecute(Void results) {
-			// change view
-			// Intent myIntent = new Intent(ListActivity.this,
-			// ListActivity.class);
-			// ListActivity.this.startActivity(myIntent);
 
 			// kill the waiting dialog 
-			
-			iv.setImageBitmap(mModel.magList.get(0).getCover());
+			mView.setMagzines(mModel.magList);
 			dialog.dismiss();
 			dialog = null;
 		}

@@ -21,7 +21,8 @@ public class ListActivityModel {
 	JSONParser jPar;
 	JSONArray  jArr;
 	ArrayList<Magazine> magList;
-	
+	private	int screen_H;
+	private	int screen_W;
 	
 	// Constructor
 	public ListActivityModel() {
@@ -55,10 +56,12 @@ public class ListActivityModel {
 				mag.setHasPDF(obj.getBoolean("has_pdf"));
 				mag.setHasFitReading(obj.getBoolean("has_fit_reading"));
 				
-				coverURL = "https://d3xwm9x3ez74b.cloudfront.net/magcovers/" + mag.getBid() + ".jpg";
+				coverURL = "https://d3xwm9x3ez74b.cloudfront.net/magcovers/" + mag.getBid() + "-hq.jpg";
 				URL url = new URL(coverURL);
 				Bitmap image = BitmapFactory.decodeStream(url.openConnection().getInputStream());
-				mag.setCover(image);
+				
+				
+				mag.setCover(downScaleToScreenSize(image, true));
 				
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
@@ -71,6 +74,35 @@ public class ListActivityModel {
 			magList.add(mag);
 			
 		}
+	}
+	
+	
+	//to save memory
+	private Bitmap downScaleToScreenSize(Bitmap srcImg, boolean fixedRatio){
+		int srcH = srcImg.getHeight();
+		int srcW = srcImg.getWidth();
+		
+		if ((srcH <= screen_H) && (srcW <= screen_W))	// image is smaller than screen
+			return srcImg;
+		
+		
+		int dstH = (srcH > screen_H)? screen_H : srcH;
+		int dstW = (srcW > screen_W)? screen_W : srcW;
+		
+		float heightRatio = dstH / (float) srcH;
+		float widthRatio  = dstW / (float) srcW;
+		
+		
+		if(heightRatio < widthRatio)
+			dstW = (int) (srcW * heightRatio);
+		else
+			dstH = (int) (srcH * widthRatio);
+		
+		Bitmap.createScaledBitmap(srcImg, dstW, dstH, false);
+
+		//Log.d("DEBUG", "Image Size = " + srcImg.getHeight() + ", " + srcImg.getWidth());
+		
+		return srcImg;
 	}
 	
 	public class Magazine{
@@ -180,5 +212,10 @@ public class ListActivityModel {
 			}
 			return jArr;
 		}
+	}
+	
+	public void setScreenSize(int H, int W){
+		screen_H = H;
+		screen_W = W; 
 	}
 }
